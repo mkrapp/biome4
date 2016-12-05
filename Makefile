@@ -9,20 +9,15 @@
 ## file 'netcdf.h', the name of the netcdf library file, and the
 ## path to that library file.
 ################################################################
-NETCDFINCDIR = /opt/netcdf/include
-NETCDFLIB    = -lnetcdf
-NETCDFLIBDIR = /opt/netcdf/lib
-
-INCDIRS = -I$(NETCDFINCDIR)
-LIBDIRS = -L$(NETCDFLIBDIR)
-LIBS    = $(NETCDFLIB)
+NETCDF_FFLAGS = $(shell nc-config --fflags)
+NETCDF_FLIBS  = $(shell nc-config --flibs)
 
 ################################################################
 ## If you want to use another compiler instead of the
 ## the GNU g77 fortran compiler, change value for compile in the
 ## following line. 
 ################################################################
-FC = g77
+FC = gfortran
 
 ####################
 ## Can add a -g here
@@ -35,14 +30,14 @@ FC = g77
 
 MODELOBJS = biome4main.o biome4setup.o biome4driver.o biome4.o
 
-FFLAGS = $(OTHERFLAGS) -fno-silent -Wall $(INCDIRS)
+FFLAGS = $(OTHERFLAGS) -O3 -Wall $(NETCDF_FFLAGS)
 
 ################################################################
 
 all::	model
 
 model:	$(MODELOBJS)
-	$(FC) -o biome4 $(MODELOBJS) $(INCDIRS) $(LIBDIRS) $(LIBS)
+	$(FC) -o biome4 $(MODELOBJS) $(FFLAGS) $(NETCDF_FLIBS)
 
 clean::	
 	-rm *.o
