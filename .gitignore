@@ -2,3 +2,5 @@ biome4
 *.o
 *.swp
 inputdata.nc
+biome4out.nc
+hydro.dat
