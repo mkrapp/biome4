@@ -1,6 +1,9 @@
 biome4
 *.o
+*.mod
+*.so
 *.swp
+*.nc
 inputdata.nc
 biome4out.nc
 hydro.dat
