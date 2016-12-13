@@ -17,7 +17,7 @@ NETCDF_FLIBS  = $(shell nc-config --flibs)
 ## the GNU g77 fortran compiler, change value for compile in the
 ## following line. 
 ################################################################
-FC = gfortran
+FC = mpif90
 
 ####################
 ## Can add a -g here
@@ -30,7 +30,7 @@ FC = gfortran
 
 MODELOBJS = biome4.o biome4setup.o biome4driver.o biome4main.o
 
-FFLAGS = $(OTHERFLAGS) -O3 -Wall $(NETCDF_FFLAGS)
+FFLAGS = $(OTHERFLAGS) -O3 -fopenmp -Wall $(NETCDF_FFLAGS)
 
 ################################################################
 

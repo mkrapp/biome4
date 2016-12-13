@@ -34,6 +34,7 @@ c------------------------------------------------------------------------
 
       program biome4main
 
+      use mpi
       use biome_driver
       use biome_setup
 
@@ -49,22 +50,35 @@ c------------------------------------------------------------------------
 
       real globalparms(5)
 
+      integer :: ierr, num_procs, my_id
+
+      call MPI_INIT ( ierr )
+      !     find out MY process ID, and how many processes were started.
+
+      call MPI_COMM_RANK (MPI_COMM_WORLD, my_id, ierr)
+      call MPI_COMM_SIZE (MPI_COMM_WORLD, num_procs, ierr)
+
 c-------------------------------------
 
       call biome4setup(inputid,outputid,limits,
-     >globalparms,noutvars,list,location,vartypes)
+     >globalparms,noutvars,list,location,vartypes,my_id)
 
       call biome4driver(inputid,outputid,limits,
-     >globalparms,noutvars,list,location,vartypes)
+     >globalparms,noutvars,list,location,vartypes,
+     >my_id,num_procs)
 
 c-------------------------------------
 c     Close files and clean up
+      call MPI_FINALIZE ( ierr )
 
+
+      if (my_id == 0) then
 5     status=nf_close(inputid)
       if (status.ne.nf_noerr) call handle_err(status)
 
       status=nf_close(outputid)
       if (status.ne.nf_noerr) call handle_err(status)
+      end if
 
       end
 

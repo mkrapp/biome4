@@ -111,7 +111,7 @@ c     Program code begins here:
       contains
 
       subroutine biome4setup(inputid,outputid,limits,
-     >globalparms,noutvars,list,location,vartypes)
+     >globalparms,noutvars,list,location,vartypes,my_id)
 
       implicit none
       include 'netcdf.inc'
@@ -153,9 +153,10 @@ c     variables
       real p,co2
       real gridres
       real water
-      real cal_year
       
       parameter (p=1E5)
+
+      integer my_id
 
 c-------------------------------------
 
@@ -203,7 +204,7 @@ c     Read in the user run options
       end if
 
 c     Read the output attributes file
-      print*,'reading attributes file'
+      if (my_id == 0) print*,'reading attributes file'
       attributefile='biome4outvars'
       open(97,file=attributefile,status='old')
 
@@ -224,7 +225,7 @@ c     Read the output attributes file
 c-------------------------------------
 c     Open the netCDF input file
 
-      print*,'opening input file'
+      if (my_id == 0) print*,'opening input file'
 
       status=nf_open(inputpath(1:length(inputpath))//'inputdata.nc',
      >                nf_nowrite,inputid)
@@ -254,7 +255,7 @@ c     Create the output file
       outname='biome4out.nc'
       outfile=outputpath(1:length(outputpath))//outname
 
-      print*,'creating output file',outfile
+      if (my_id == 0) print*,'creating output file',outfile
 
       status=nf_create(outfile,nf_clobber,outputid)
       if (status.ne.nf_noerr) call handle_err(status)
@@ -382,7 +383,15 @@ c     Find the flag for water
       globalparms(2)=co2
       globalparms(3)=water
 
-      print*,'setup complete'
+      if (my_id == 0) then
+        if (globalparms(4) == 999999.0) then
+          write(*,*) 'Use old PET (present-day radiation balance)'
+        else
+          write(*,*) 'Use new PET for year', int(globalparms(4))
+        end if
+      end if
+
+      if (my_id == 0) print*,'setup complete'
        
 c-------------------
 c      the program is set up. return
