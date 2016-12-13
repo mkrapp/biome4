@@ -45,6 +45,12 @@ c	Also changed the type and dimension checking to query the output
 c	dataset.  This may be more time-consuming but it is failsafe.
 c------------------------------------------------------------------------
 
+      module biome_driver
+
+      use biome
+
+      contains
+
       subroutine biome4driver(inputid,outputid,limits,
      >           globalparms,noutvars,list,location,vartypes)
 
@@ -75,8 +81,9 @@ c     variables
       integer dot,dots
       integer ndims,i
       
-      real globalparms(4)
+      real globalparms(5)
       real p,co2
+      real cal_year
       real water
       real vars_out(50)
       real outputdata(500)
@@ -96,8 +103,9 @@ c     variables
       p=globalparms(1)
       co2=globalparms(2)
       water=globalparms(3)
+      cal_year=globalparms(4)
 
-      if (globalparms(4).eq.1) then
+      if (globalparms(5).eq.1) then
        diagmode=.true.
       else
        diagmode=.false.
@@ -213,7 +221,8 @@ c-------------------------------
           vars_out(43)=whc(1)        !whc top=k5
           vars_out(44)=whc(2)        !whc bottom=k6
 
-          vars_out(46)=globalparms(4) !diagnostic mode indicator 1=on other=off
+          vars_out(46)=globalparms(5) !diagnostic mode indicator 1=on other=off
+          vars_out(47)=globalparms(4) ! calendar year
           vars_out(49)=thislon
 
 c-------------------------------
@@ -297,3 +306,4 @@ c-------------------------------
       return
       
       end
+      end module

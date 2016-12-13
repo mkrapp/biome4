@@ -28,16 +28,19 @@ FC = gfortran
 ## You should not have to edit anything below this line        #
 ################################################################
 
-MODELOBJS = biome4main.o biome4setup.o biome4driver.o biome4.o
+MODELOBJS = biome4.o biome4setup.o biome4driver.o biome4main.o
 
 FFLAGS = $(OTHERFLAGS) -O3 -Wall $(NETCDF_FFLAGS)
 
 ################################################################
 
+%.o: %.f
+	$(FC) -c -o $@ $< $(FFLAGS) $(NETCDF_FFLAGS) -Ilpj
+
 all::	model
 
 model:	$(MODELOBJS)
-	$(FC) -o biome4 $(MODELOBJS) $(FFLAGS) $(NETCDF_FLIBS)
+	$(FC) -o biome4 $(MODELOBJS) $(FFLAGS) $(NETCDF_FLIBS) -Llpj -llpj
 
 clean::	
 	-rm *.o

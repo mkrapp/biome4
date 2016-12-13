@@ -34,6 +34,9 @@ c------------------------------------------------------------------------
 
       program biome4main
 
+      use biome_driver
+      use biome_setup
+
       implicit none
       include 'netcdf.inc'
 
@@ -44,7 +47,7 @@ c------------------------------------------------------------------------
       integer vartypes(100),location(100),list(100)
       integer noutvars
 
-      real globalparms(4)
+      real globalparms(5)
 
 c-------------------------------------
 

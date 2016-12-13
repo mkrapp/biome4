@@ -81,6 +81,9 @@ c	Corrected line 2348 percolation function should always be to the
 c	power 4 (**4) and not scaled to k().
 c
 c------------------------------------------------------------------------
+      module biome
+
+      contains
 
       subroutine biome4(vars_in,output)
 
@@ -98,6 +101,7 @@ c------------------------------------------------------------------------
       integer i
 
       real lon,lat,co2,p,tdif,temp(12),prec(12),clou(12),soil(5)
+      integer cal_year
       real dtemp(365),dprec(365),dclou(365),dprecin(365)
       real dpet(365),dphen(365,2),dmelt(365),realout(0:numofpfts,200)
       real optnpp(0:numofpfts),optlai(0:numofpfts)
@@ -150,6 +154,7 @@ c----------------------------
 c----------------------------
 c     assign the variables that arrived in the array vars_in
 
+
       lon=vars_in(49)
       lat=vars_in(1) !vars_in(49)-(vars_in(1)/vars_in(50))
       co2=vars_in(2)
@@ -173,6 +178,8 @@ c     assign the variables that arrived in the array vars_in
       else
        diagmode=.false.
       end if
+
+      cal_year = int(vars_in(47))
       
 c----------------------------
  
@@ -197,8 +204,8 @@ c      Initialize soil texture specific parameters
 c-------------------------------------------------------------------------
 c      Linearly interpolate mid-month values to quasi-daily values:
        call daily(temp,dtemp)
-       call daily(clou,dclou)   
-       call daily(prec,dprecin)   
+       call daily(clou,dclou)
+       call daily(prec,dprecin)
 c--------------------------------------------------------------------------
 c      Initialize parameters derived from climate data:
        call climdata(tcm,twm,gdd5,gdd0,tprec,temp,prec,dtemp,alttmin)
@@ -206,8 +213,13 @@ c      Initialize parameters derived from climate data:
        call soiltemp(temp,soil,tsoil)
 c--------------------------------------------------------------------------
 c      Calculate mid-month values for pet,sun & dayl from temp,cloud & lat:
-       call ppeett
-     >  (lat,dtemp,dclou,dpet,temp,sun,dayl,rad0,ddayl,radanom)  
+       if (cal_year == 999999) then
+         call ppeett
+     >     (lat,dtemp,dclou,dpet,temp,sun,dayl,rad0,ddayl,radanom)
+       else
+         call new_ppeett
+     >     (lat,cal_year,temp,clou,prec,tcm,dpet,ddayl,rad0,sun,dayl)
+       end if
 c-------------------------------------------------------------------------
 c      Run snow model:
        call snow(dtemp,dprec,dmelt,dprecin,maxdepth)   
@@ -299,7 +311,7 @@ c      Select dominant plant type/s on the basis of modelled optimal NPP & LAI:
        
        call competition2
      > (optnpp,optlai,wetness,tmin,tprec,pfts,optdata,output,diagmode,
-     >  biome,numofpfts,gdd0,gdd5,tcm,pftpar,soil)
+     >  biome,numofpfts,gdd0,gdd5,tcm,pftpar,soil,dpet)
 
 c------------------------------------------------------------------------------
 c      Final output biome is given by the integer biome:
@@ -359,7 +371,7 @@ c-----------------------
 c*******************************************************************************
       subroutine competition2
      >(optnpp,optlai,wetness,tmin,tprec,pfts,optdata,output,diagmode,
-     > biome,numofpfts,gdd0,gdd5,tcm,pftpar,soil)
+     > biome,numofpfts,gdd0,gdd5,tcm,pftpar,soil,dpet)
 
       implicit none
 
@@ -371,6 +383,7 @@ c*******************************************************************************
       real temperatenpp,tprec,wetness(0:numofpfts),lai,npp
       real woodnpp,grassnpp,subnpp,gdd0,gdd5,ratio,lairatio,nppdif
       real wetlayer(0:numofpfts,2),wetratio(0:numofpfts)
+      real dpet(365)
       
       real npprat,treepct,grasspct
       
@@ -951,6 +964,13 @@ c      Monthly soil moisture, mean, top, and bottom layers *100
        output(452)=tcm		       !coldest monrh temp
        output(453)=gdd0    	       !gdd0
        output(454)=gdd5                !gdd5
+
+       output(480)=optdata(dom,3)! annual AET
+       output(481)=sum(dpet)     ! annual PET
+       ! RMB modification
+       do m=1,12
+         output(481+m)=optdata(dom,36+m)  !monthly npp, one pft
+       end do
 
 c---------------------------------------------------------------------
 
@@ -2939,6 +2959,81 @@ c       Calculate effective water supply (as daily values in mm/day)
 
       return
       end
+
+      subroutine new_ppeett(lat,yr,temp,clou,prec,tcm,
+     >                      dpet,ddayl,rad0,sun,dayl)
+
+       use parametersmod, only : dp, sp, metvars_out
+       use radiationmod,  only : radpet, calcPjj, initairmass
+       use orbitmod,      only : orbitpars, calcorbitpars
+
+       implicit none
+       real, intent(in)    :: temp(12),prec(12),clou(12)
+       real, intent(in)    :: lat,tcm
+       integer, intent(in) :: yr
+       real, intent(out)   :: dpet(365),ddayl(365),rad0,sun(12),dayl(12)
+       real                :: dtemp(365),dclou(365),dprec(365)
+       type(orbitpars)     :: orbit
+       type(metvars_out)   :: met
+       real(sp)            :: Pjj, Ratm, delta
+       integer             :: dyr, day
+       integer             :: daysinmonth(12),midday(12),m,m1,m2
+       real                :: drad(365)
+
+
+       daysinmonth = (/ 31,28,31,30,31,30,31,31,30,31,30,31 /)
+       midday      = (/ 16,44,75,105,136,166,197,228,258,289,319,350 /)
+
+       call daily(prec/daysinmonth,dprec)
+       call daily(temp,dtemp)
+       call daily(clou,dclou)
+
+       call calcorbitpars(yr,orbit)
+       call calcPjj(temp,prec,Pjj)
+       call initairmass()
+
+       rad0 = 0.0
+       sun = 0.0
+       dayl = 0.0
+       dpet = 0.0
+
+       do day=1,365
+         met%tmax   = dtemp(day)
+         met%tmin   = dtemp(day)
+         met%prec   = dprec(day)
+         met%cldf   = 1.-dclou(day)/100.
+         call radpet(orbit,lat*1.0_dp,tcm,Pjj,day,Ratm,met)
+         !TODO needs to be replaced by actual relative air pressure
+         Ratm = 1.0_sp
+         dpet(day) = met%dpet
+         drad(day) = met%srad*1.e3 ! KJ/m2 -> J/m2
+         ddayl(day) = met%dayl
+         ! Sum total annual radiation for months with t>0oC (GJs PAR year-1)
+         ! (assuming 50% of short wave radiation is PAR)
+         if (dtemp(day)>0.0) then
+           rad0 = rad0 + 0.5*drad(day)*1.e-9
+         end if
+         !if (any(midday==day)) then
+         !  sun(minloc(abs(midday-day))) = drad(day)
+         !  dayl(minloc(abs(midday-day))) = ddayl(day)
+         !end if
+       end do
+       ! average for monthly values of 'sun' and 'dayl'
+       m1 = 1
+       m2 = 0
+       sun = 0.0
+       do m=1,12
+         m2 = m2 + daysinmonth(m)
+         sun(m) = sum(drad(m1:m2))/daysinmonth(m)
+         dayl(m) = sum(ddayl(m1:m2))/daysinmonth(m)
+         m1 = m1 + daysinmonth(m)
+       end do
+       !write(*,*) 'new', lat, rad0, sum(ddayl)/365.
+       !write(*,*) 'new dayl', lat, dayl
+       !write(*,*) 'new sun', lat, sun
+       ! END MK
+      end subroutine
+
 c******************************************************************************
 c      Calculates insolation and PET for each month
  
@@ -2966,7 +3061,7 @@ c      Calculates insolation and PET for each month
 
        pie = 4.*atan(1.)
        dip = pie/180.
-    
+
 c      Daily loop
        day=0
        rad0=0.
@@ -3068,6 +3163,9 @@ c        (assuming 50% of short wave radiation is PAR)
 
  20    continue
  10    continue
+       !write(*,*) 'old', lat, rad0, sum(ddayl)/365.
+       !write(*,*) 'old dayl', lat, dayl
+       !write(*,*) 'old sun', lat, sun
 
        return
        end
@@ -3578,3 +3676,4 @@ c     annual NPP so that firedays are reduced linearly to 0 below 1000gC/m2
       return
 
       end
+      end module

@@ -106,6 +106,10 @@ c
 c------------------------------------------------------------------------
 c     Program code begins here:
 
+      module biome_setup
+
+      contains
+
       subroutine biome4setup(inputid,outputid,limits,
      >globalparms,noutvars,list,location,vartypes)
 
@@ -145,10 +149,11 @@ c     variables
       
       real lonlatbox(4)
       real var_missing
-      real globalparms(4)
+      real globalparms(5)
       real p,co2
       real gridres
       real water
+      real cal_year
       
       parameter (p=1E5)
 
@@ -165,10 +170,12 @@ c     Read in the user run options
 
       read(99,*)inputpath
       read(99,*)outputpath
-            
+
       read(99,*) co2
-      
-      read(99,*) globalparms(4) !diagnostic mode option
+
+      read(99,*) globalparms(4) ! read calendar year
+
+      read(99,*) globalparms(5) !diagnostic mode option
 
       i=0
 15    i=i+1
@@ -546,6 +553,6 @@ c----------------------
 
       return
       end
-
+      end module
 
 c-------------------------------------
