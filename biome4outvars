@@ -17,6 +17,9 @@ C+ varnames  vardims	dimids	typenum		var_longnames				var_units		location
 C+---------+---------+---------+-------+-----------------------------------------------+-----------------------+---------+
 'biome'		2	1 2 0 0	3	'biome'						'biome'			1
 'npp'		2	1 2 0 0	5	'annual net primary production'			'gC/m^2'		3
+'mo_npp'	3	1 2 3 0	5	'monthly net primary production'		'gC/m^2'		482
+'aet'   	2	1 2 0 0	5	'annual evapotranspiration'              	'mm/year'		480
+'pet'   	2	1 2 0 0	5	'annual potential evapotranspiration'   	'mm/year'		481
 'decomp'	2	1 2 0 0	5	'decomposition scalar'				'index'			451
 'LAI'           2	1 2 0 0	5	'lai'			                        'gC/m^2'		2
 'runoff'	2	1 2 0 0	5	'total annual runoff'				'cm'			11
