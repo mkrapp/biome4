@@ -535,12 +535,15 @@ c----------------------
       status=nf_get_var_real(inputid,2,lat)
       if (status.ne.nf_noerr) call handle_err(status)
 
+      maxy=1
+      maxx=1
+      minx=1
+      miny=1
       do i=1,lonsize
        if (lon(i).le.milo) minx=i
        if (lon(i).le.malo) maxx=i
       end do
        
-      maxy=1
       do i=1,latsize
        if (lat(i).ge.mila) miny=i
        if (lat(i).ge.mala) maxy=i
