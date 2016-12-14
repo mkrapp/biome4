@@ -218,7 +218,8 @@ c      Calculate mid-month values for pet,sun & dayl from temp,cloud & lat:
      >     (lat,dtemp,dclou,dpet,temp,sun,dayl,rad0,ddayl,radanom)
        else
          call new_ppeett
-     >     (lat,cal_year,temp,clou,prec,tcm,dpet,ddayl,rad0,sun,dayl)
+     >     (lat,cal_year,temp,dtemp,clou,dclou,prec,dprec,tcm,
+     >      dpet,ddayl,rad0,sun,dayl)
        end if
 c-------------------------------------------------------------------------
 c      Run snow model:
@@ -2960,7 +2961,7 @@ c       Calculate effective water supply (as daily values in mm/day)
       return
       end
 
-      subroutine new_ppeett(lat,yr,temp,clou,prec,tcm,
+      subroutine new_ppeett(lat,yr,temp,dtemp,clou,dclou,prec,dprec,tcm,
      >                      dpet,ddayl,rad0,sun,dayl)
 
        use parametersmod, only : dp, sp, metvars_out
@@ -2969,10 +2970,10 @@ c       Calculate effective water supply (as daily values in mm/day)
 
        implicit none
        real, intent(in)    :: temp(12),prec(12),clou(12)
+       real, intent(in)    :: dtemp(365),dclou(365),dprec(365)
        real, intent(in)    :: lat,tcm
        integer, intent(in) :: yr
        real, intent(out)   :: dpet(365),ddayl(365),rad0,sun(12),dayl(12)
-       real                :: dtemp(365),dclou(365),dprec(365)
        type(orbitpars)     :: orbit
        type(metvars_out)   :: met
        real(sp)            :: Pjj, Ratm, delta
@@ -2983,10 +2984,6 @@ c       Calculate effective water supply (as daily values in mm/day)
 
        daysinmonth = (/ 31,28,31,30,31,30,31,31,30,31,30,31 /)
        midday      = (/ 16,44,75,105,136,166,197,228,258,289,319,350 /)
-
-       call daily(prec/daysinmonth,dprec)
-       call daily(temp,dtemp)
-       call daily(clou,dclou)
 
        call calcorbitpars(yr,orbit)
        call calcPjj(temp,prec,Pjj)
