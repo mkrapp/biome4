@@ -110,7 +110,7 @@ c     Program code begins here:
 
       contains
 
-      subroutine biome4setup(inputid,outputid,limits,
+      subroutine biome4setup(optionsfile,inputid,outputid,limits,
      >globalparms,noutvars,list,location,vartypes,my_id)
 
       implicit none
@@ -118,7 +118,6 @@ c     Program code begins here:
 
 c     variables
 
-      character*15 outname
       character*20 dimname,varnames(100),var_units(100),var_unit
       character*20 varname,dimunits
       character*30 timestr
@@ -166,7 +165,6 @@ c-------------------------------------
 c-------------------------------------
 c     Read in the user run options
 
-      optionsfile='biome4options'
       open(99,file=optionsfile,status='old')
 
       read(99,*)inputpath
@@ -225,13 +223,13 @@ c     Read the output attributes file
 c-------------------------------------
 c     Open the netCDF input file
 
-      if (my_id == 0) print*,'opening input file'
+      if (my_id == 0) print*,'opening input file ',inputpath
 
-      status=nf_open(inputpath(1:length(inputpath))//'inputdata.nc',
+      status=nf_open(inputpath,
      >                nf_nowrite,inputid)
       if (status.ne.nf_noerr) call handle_err(status)
 
-      input_title=inputpath(1:length(inputpath))//'inputdata.nc'
+      input_title=inputpath
 
 c-------------------
 c      get the boundaries of the box
@@ -245,17 +243,16 @@ c      find the x and y values for the min and max lat and lon
       
       call box(inputid,lonsize,latsize,lonlatbox,limits)
 
-c      print*,lonlatbox
-c      print*,limits
+      if (my_id == 0) print*,lonlatbox
+      if (my_id == 0) print*,limits
 c      stop
 
 c-------------------------------------
 c     Create the output file
 
-      outname='biome4out.nc'
-      outfile=outputpath(1:length(outputpath))//outname
+      outfile=outputpath
 
-      if (my_id == 0) print*,'creating output file',outfile
+      if (my_id == 0) print*,'creating output file ',outfile
 
       status=nf_create(outfile,nf_clobber,outputid)
       if (status.ne.nf_noerr) call handle_err(status)
@@ -280,11 +277,11 @@ c     Create the output file
      >(outputid,nf_global,'pCO2',nf_float,1,co2)
       if (status.ne.nf_noerr) call handle_err(status)
 
-      gridres=30.
-
-      status=nf_put_att_real
-     >(outputid,nf_global,'resolution',nf_float,1,gridres)
-      if (status.ne.nf_noerr) call handle_err(status)
+c      gridres=30.
+c
+c      status=nf_put_att_real
+c     >(outputid,nf_global,'resolution',nf_float,1,gridres)
+c      if (status.ne.nf_noerr) call handle_err(status)
 
 c-----------------
 c     define lon, lat and time dimensions and variables

@@ -126,7 +126,7 @@ c-------------------------------
       
       jobsize=xspan*yspan
 
-      if (my_id == 0) write(*,*),'jobsize is',jobsize,' pixels'
+      if (my_id == 0) write(*,*) 'jobsize is',jobsize,' pixels'
 
       dot=nint(jobsize/100.)
       count=0
@@ -295,7 +295,7 @@ c       here is the dot counter
 	   dots=0
           else
            write(*,2)'.'
-          end if	
+          end if
           count=0
          end if
 	end if
@@ -304,6 +304,7 @@ c-------------------------------
 
        end do
       end do
+      if (my_id .eq. 0) write(*,*)'Finished!'
 
       return
       

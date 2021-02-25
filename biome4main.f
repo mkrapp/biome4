@@ -47,6 +47,7 @@ c------------------------------------------------------------------------
       integer inputid,outputid
       integer vartypes(100),location(100),list(100)
       integer noutvars
+      character(len=80) :: optionsfile
 
       real globalparms(5)
 
@@ -60,7 +61,13 @@ c------------------------------------------------------------------------
 
 c-------------------------------------
 
-      call biome4setup(inputid,outputid,limits,
+      call get_command_argument(1, optionsfile)
+      if (len_trim(optionsfile) == 0) then
+          write(*,*) 'Missing argument (options file). Exiting!'
+          return
+      end if
+
+      call biome4setup(optionsfile,inputid,outputid,limits,
      >globalparms,noutvars,list,location,vartypes,my_id)
 
       call biome4driver(inputid,outputid,limits,
