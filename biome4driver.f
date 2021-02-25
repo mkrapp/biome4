@@ -122,7 +122,7 @@ c-------------------------------
       maxy=limits(4)
       
       xspan=maxx-minx
-      yspan=miny-maxy
+      yspan=maxy-miny
       
       jobsize=xspan*yspan
 
@@ -135,7 +135,7 @@ c-------------------------------
 
       if (.not.diagmode .and. my_id == 0) write(*,1)mark,'%'
 
-      do y=maxy+my_id,miny,num_procs
+      do y=miny+my_id,maxy,num_procs
        do x=minx,maxx
 
         status=nf_get_var1_real(inputid,1,x,thislon)
@@ -153,7 +153,7 @@ c-------------------------------
 
 
 	xo=x-minx+1
-	yo=y-maxy+1
+	yo=y-miny+1
 	thispixelo(1)=xo
 	thispixelo(2)=yo
 

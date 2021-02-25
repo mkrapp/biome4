@@ -296,7 +296,7 @@ c     define lon, lat and time dimensions and variables
      >(outputid,dimname,dimsize,dim_longname,dimtype,dimunits)
 
       dimname='lat'
-      dimsize=1+limits(3)-limits(4)
+      dimsize=1+limits(4)-limits(3)
       dim_longname='latitude'
       dimtype=nf_float
       dimunits='degrees_north'
@@ -551,8 +551,8 @@ c----------------------
       end do
        
       do i=1,latsize
-       if (lat(i).ge.mila) miny=i
-       if (lat(i).ge.mala) maxy=i
+       if (lat(i).le.mila) miny=i
+       if (lat(i).le.mala) maxy=i
       end do
 
       limits(1)=minx

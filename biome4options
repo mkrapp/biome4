@@ -1,7 +1,7 @@
-'./'
-'./'
+'./inputdata.nc'
+'./output.nc'
 270	!CO2 level
-0       !Calendar year (999999=use old PET calculation)
+999999       !Calendar year (999999=use old PET calculation)
 0	!Diagnostic point mode option, 1=on, anything else=off
 1	!list of variables id numbers to output, in I3 format, must end with 99
 2  
