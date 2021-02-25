@@ -9,8 +9,8 @@
 ## file 'netcdf.h', the name of the netcdf library file, and the
 ## path to that library file.
 ################################################################
-NETCDF_FFLAGS = $(shell nc-config --fflags)
-NETCDF_FLIBS  = $(shell nc-config --flibs)
+NETCDF_FFLAGS = -I$(shell nc-config --includedir)
+NETCDF_FLIBS  = -L$(shell nc-config --libdir) -lnetcdf -lnetcdff
 
 ################################################################
 ## If you want to use another compiler instead of the
@@ -30,12 +30,12 @@ FC = mpif90
 
 MODELOBJS = biome4.o biome4setup.o biome4driver.o biome4main.o
 
-FFLAGS = $(OTHERFLAGS) -O3 -fopenmp -Wall $(NETCDF_FFLAGS)
+FFLAGS = $(OTHERFLAGS) -O2 -fopenmp -Wall $(NETCDF_FFLAGS) -fallow-argument-mismatch
 
 ################################################################
 
 %.o: %.f
-	$(FC) -c -o $@ $< $(FFLAGS) $(NETCDF_FFLAGS) -Ilpj
+	$(FC) -c -o $@ $< $(FFLAGS) -Ilpj
 
 all::	model
 
