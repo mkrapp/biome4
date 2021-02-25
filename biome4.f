@@ -244,7 +244,7 @@ c      Rulebase of absolute constraints to select potentially presents pfts:
 c       The tropical evergreen pft is not used in this version
 c       of the model.  This is because the tropical deciduous tree
 c       will be evergreen if it is not subject to water stress.
-c       Otherwise the two pft's are parameterized in the same way,
+c       Otherwise the two pfts are parameterized in the same way,
 c       so not using the pft saves computation time.
 
         pfts(1)=0
@@ -629,7 +629,7 @@ c	end if
       end if 
 
 
-c     add npp limits on other PFT's (tropical mountain story)
+c     add npp limits on other PFTs (tropical mountain story)
 
       if (wdom.eq.6) then
        if (optnpp(wdom).lt.140.0) then
