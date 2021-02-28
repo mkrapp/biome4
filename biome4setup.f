@@ -111,7 +111,7 @@ c     Program code begins here:
       contains
 
       subroutine biome4setup(optionsfile,inputid,outputid,limits,
-     >globalparms,noutvars,list,location,vartypes,my_id)
+     >globalparms,noutvars,list,location,vartypes)
 
       implicit none
       include 'netcdf.inc'
@@ -154,8 +154,6 @@ c     variables
       real water
       
       parameter (p=1E5)
-
-      integer my_id
 
 c-------------------------------------
 
@@ -202,7 +200,7 @@ c     Read in the user run options
       end if
 
 c     Read the output attributes file
-      if (my_id == 0) print*,'reading attributes file'
+      print*,'reading attributes file'
       attributefile='biome4outvars'
       open(97,file=attributefile,status='old')
 
@@ -223,7 +221,7 @@ c     Read the output attributes file
 c-------------------------------------
 c     Open the netCDF input file
 
-      if (my_id == 0) print*,'opening input file ',inputpath
+      print*,'opening input file ',inputpath
 
       status=nf_open(inputpath,
      >                nf_nowrite,inputid)
@@ -243,8 +241,8 @@ c      find the x and y values for the min and max lat and lon
       
       call box(inputid,lonsize,latsize,lonlatbox,limits)
 
-      if (my_id == 0) print*,lonlatbox
-      if (my_id == 0) print*,limits
+      print*,lonlatbox
+      print*,limits
 c      stop
 
 c-------------------------------------
@@ -252,7 +250,7 @@ c     Create the output file
 
       outfile=outputpath
 
-      if (my_id == 0) print*,'creating output file ',outfile
+      print*,'creating output file ',outfile
 
       status=nf_create(outfile,nf_clobber,outputid)
       if (status.ne.nf_noerr) call handle_err(status)
@@ -380,15 +378,13 @@ c     Find the flag for water
       globalparms(2)=co2
       globalparms(3)=water
 
-      if (my_id == 0) then
-        if (globalparms(4) == 999999.0) then
-          write(*,*) 'Use old PET (present-day radiation balance)'
-        else
-          write(*,*) 'Use new PET for year', int(globalparms(4))
-        end if
+      if (globalparms(4) == 999999.0) then
+        write(*,*) 'Use old PET (present-day radiation balance)'
+      else
+        write(*,*) 'Use new PET for year', int(globalparms(4))
       end if
 
-      if (my_id == 0) print*,'setup complete'
+      print*,'setup complete'
        
 c-------------------
 c      the program is set up. return

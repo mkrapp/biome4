@@ -820,7 +820,6 @@ c       Predicted runoff (for dom plant type, wood or grass):
 
 c       Number of the dominant (woody) pft:  
         output(12)=optpft
-c        output(12)=wdom
 
 c       Total annual precipitation (hopefully<9999mm):
         output(13)=nint(tprec)
@@ -1179,11 +1178,11 @@ c------------------------------------
 c-----savanna and woodland-----------
       if (optpft.eq.14) then
        if (woodpft.le.2) then
-        if (woodylai.gt.4.0) then
-         biome=12  !tropical savanna
-        else	
-         biome=13  !tropical xero scrub 
-	end if
+           if (woodylai.gt.4.0) then
+               biome=12  !tropical savanna
+           else	
+               biome=13  !tropical xero scrub 
+           end if
         goto 200
        else if (woodpft.eq.3) then
         biome=15   !sclerophyll woodland

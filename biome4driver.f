@@ -52,8 +52,7 @@ c------------------------------------------------------------------------
       contains
 
       subroutine biome4driver(inputid,outputid,limits,
-     >           globalparms,noutvars,list,location,vartypes,
-     >           my_id,num_procs)
+     >           globalparms,noutvars,list,location,vartypes)
 
       implicit none
       include 'netcdf.inc'
@@ -93,8 +92,6 @@ c     variables
       real realval
       real arrval(12)
 
-      integer :: num_procs, my_id
-
       parameter (ice=28,barren=27)
       
       data moncount /1,1,12/
@@ -126,16 +123,16 @@ c-------------------------------
       
       jobsize=xspan*yspan
 
-      if (my_id == 0) write(*,*) 'jobsize is',jobsize,' pixels'
+      write(*,*) 'jobsize is',jobsize,' pixels'
 
       dot=nint(jobsize/100.)
       count=0
       mark=0
       dots=0
 
-      if (.not.diagmode .and. my_id == 0) write(*,1)mark,'%'
+      if (.not.diagmode) write(*,1)mark,'%'
 
-      do y=miny+my_id,maxy,num_procs
+      do y=miny,maxy
        do x=minx,maxx
 
         status=nf_get_var1_real(inputid,1,x,thislon)
@@ -286,7 +283,7 @@ c-------------------------------
 c       here is the dot counter
 
         if (.not.diagmode) then
-        if (my_id .eq. 0) count=count+num_procs
+         count=count+1
          if (count.ge.dot) then
           dots=dots+1
           if (dots.eq.10) then
@@ -304,7 +301,7 @@ c-------------------------------
 
        end do
       end do
-      if (my_id .eq. 0) write(*,*)'Finished!'
+      write(*,*)'Finished!'
 
       return
       

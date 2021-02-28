@@ -17,7 +17,7 @@ NETCDF_FLIBS  = -L$(shell nc-config --libdir) -lnetcdf -lnetcdff
 ## the GNU g77 fortran compiler, change value for compile in the
 ## following line. 
 ################################################################
-FC = mpif90
+FC = gfortran
 
 ####################
 ## Can add a -g here
@@ -30,7 +30,7 @@ FC = mpif90
 
 MODELOBJS = biome4.o biome4setup.o biome4driver.o biome4main.o
 
-FFLAGS = $(OTHERFLAGS) -O2 -fopenmp -Wall $(NETCDF_FFLAGS) -fallow-argument-mismatch
+FFLAGS = $(OTHERFLAGS) -O3 -Wall $(NETCDF_FFLAGS) -fallow-argument-mismatch
 
 ################################################################
 
