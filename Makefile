@@ -29,19 +29,28 @@ OTHERFLAGS = -fallow-argument-mismatch
 ## You should not have to edit anything below this line        #
 ################################################################
 
+LPJOBJS = lpj/parametersmod.o lpj/orbitmod.o lpj/radiationmod.o
+LPJ_AR = lpj/liblpj.so
 MODELOBJS = biome4.o biome4setup.o biome4driver.o biome4main.o
 
 FFLAGS = $(OTHERFLAGS) -O3 -Wall $(NETCDF_FFLAGS)
 
 ################################################################
 
-%.o: %.f
+%.o: %.f liblpj
 	$(FC) -c -o $@ $< $(FFLAGS) -Ilpj
 
 all::	model
+
+# compile LPJ objects first
+lpj/%.o: lpj/%.f90
+	$(FC) -c -fPIC -o $@ $< $(FFLAGS)
+
+liblpj: $(LPJOBJS)
+	ar rcs $(LPJ_AR) $(LPJOBJS)
 
 model:	$(MODELOBJS)
 	$(FC) -o biome4 $(MODELOBJS) $(FFLAGS) $(NETCDF_FLIBS) -Llpj -llpj
 
 clean::	
-	-rm *.o
+	-rm *.o lpj/*.o $(LPJ_AR) biome4 *.mod
