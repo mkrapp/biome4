@@ -254,7 +254,7 @@ c-------------------------------
 	   else
 
 	   if (vartypes(list(var)).eq.nf_short) then
-	    shortval=nint(outputdata(location(list(var))))
+	    shortval=nint(outputdata(location(list(var))),2)
             status=nf_put_var1_int2(outputid,var+4,thispixelo,shortval)
             if (status.ne.nf_noerr) call handle_err(status)
 	   else

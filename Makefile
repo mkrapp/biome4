@@ -23,6 +23,7 @@ FC = gfortran
 ## Can add a -g here
 ####################
 #OTHERFLAGS = -g
+OTHERFLAGS = -fallow-argument-mismatch
 
 ################################################################
 ## You should not have to edit anything below this line        #
@@ -30,7 +31,7 @@ FC = gfortran
 
 MODELOBJS = biome4.o biome4setup.o biome4driver.o biome4main.o
 
-FFLAGS = $(OTHERFLAGS) -O3 -Wall $(NETCDF_FFLAGS) -fallow-argument-mismatch
+FFLAGS = $(OTHERFLAGS) -O3 -Wall $(NETCDF_FFLAGS)
 
 ################################################################
 
