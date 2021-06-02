@@ -305,13 +305,14 @@ end do
 prg = prg / 3600.d0 + xop
 perh = perh + prg
 
-if (perh > 0.d0) then !line 53
-  if (perh > 360.d0) then
-    perh = perh - 360.d0
-  end if
-else if (perh < 0.d0) then
-  perh = perh + 360.d0
-end if
+perh = modulo(perh,360.d0)
+!if (perh > 0.d0) then !line 53
+!  if (perh > 360.d0) then
+!    perh = perh - 360.d0
+!  end if
+!else if (perh < 0.d0) then
+!  perh = perh + 360.d0
+!end if
 
 pre = ecc * sin(perh * pir)
 

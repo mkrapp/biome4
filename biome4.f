@@ -82,6 +82,8 @@ c	power 4 (**4) and not scaled to k().
 c
 c------------------------------------------------------------------------
       module biome
+       use parametersmod, only : dp
+       use orbitmod, only : orbitpars, calcorbitpars, toa_insolation
 
       contains
 
@@ -100,15 +102,18 @@ c------------------------------------------------------------------------
       integer pfts(numofpfts),iopt
       integer i
 
-      real lon,lat,co2,p,tdif,temp(12),prec(12),clou(12),soil(5)
+      real lon,co2,p,tdif,temp(12),prec(12),clou(12),soil(5)
+      real(dp) lat
       integer cal_year
       real dtemp(365),dprec(365),dclou(365),dprecin(365)
       real dpet(365),dphen(365,2),dmelt(365),realout(0:numofpfts,200)
       real optnpp(0:numofpfts),optlai(0:numofpfts)
       real pftpar(25,25),k(12),dayl(12),sun(12),wetness(0:numofpfts)
+      real rad_rs(12),rad_rl(12)
       real gdd5,tcm,twm,tprec,gdd0,rad0,tmin,tminin
       real tsoil(12),ddayl(365),maxdepth
       real radanom(12),alttmin
+      type(orbitpars)     :: orbit
 
       real vars_in(50)
       real output(500)
@@ -116,7 +121,7 @@ c------------------------------------------------------------------------
       character*1 yorn
       
       real sumagnpp,delag,wtagnpp
-      
+
 c----------------------------
 
       character*40 biomename(28)
@@ -180,6 +185,7 @@ c     assign the variables that arrived in the array vars_in
       end if
 
       cal_year = int(vars_in(47))
+      call calcorbitpars(cal_year,orbit)
       
 c----------------------------
  
@@ -214,12 +220,13 @@ c      Initialize parameters derived from climate data:
 c--------------------------------------------------------------------------
 c      Calculate mid-month values for pet,sun & dayl from temp,cloud & lat:
        if (cal_year == 999999) then
-         call ppeett
-     >     (lat,dtemp,dclou,dpet,temp,sun,dayl,rad0,ddayl,radanom)
+        call ppeett_old
+     >    (lat,dtemp,dclou,dpet,temp,sun,dayl,rad0,ddayl,radanom,
+     >     rad_rs,rad_rl)
        else
-         call new_ppeett
-     >     (lat,cal_year,temp,dtemp,clou,dclou,prec,dprec,tcm,
-     >      dpet,ddayl,rad0,sun,dayl)
+        call ppeett
+     >    (orbit,lat,dtemp,dclou,dpet,temp,sun,
+     >     dayl,rad0,ddayl,radanom,rad_rs,rad_rl)
        end if
 c-------------------------------------------------------------------------
 c      Run snow model:
@@ -318,6 +325,11 @@ c------------------------------------------------------------------------------
 c      Final output biome is given by the integer biome:
  
        output(1)=biome
+       do i=1,12
+           output(255+i)=sun(i)
+           output(455+i)=rad_rs(i)
+           output(467+i)=rad_rl(i)
+       end do
        output(48)=lon
        output(49)=lat
        
@@ -967,7 +979,7 @@ c      Monthly soil moisture, mean, top, and bottom layers *100
 
        output(480)=optdata(dom,3)! annual AET
        output(481)=sum(dpet)     ! annual PET
-       ! RMB modification
+       ! RMB modification, 482-494
        do m=1,12
          output(481+m)=optdata(dom,36+m)  !monthly npp, one pft
        end do
@@ -2960,94 +2972,29 @@ c       Calculate effective water supply (as daily values in mm/day)
       return
       end
 
-      subroutine new_ppeett(lat,yr,temp,dtemp,clou,dclou,prec,dprec,tcm,
-     >                      dpet,ddayl,rad0,sun,dayl)
-
-       use parametersmod, only : dp, sp, metvars_out
-       use radiationmod,  only : radpet, calcPjj, initairmass
-       use orbitmod,      only : orbitpars, calcorbitpars
-
-       implicit none
-       real, intent(in)    :: temp(12),prec(12),clou(12)
-       real, intent(in)    :: dtemp(365),dclou(365),dprec(365)
-       real, intent(in)    :: lat,tcm
-       integer, intent(in) :: yr
-       real, intent(out)   :: dpet(365),ddayl(365),rad0,sun(12),dayl(12)
-       type(orbitpars)     :: orbit
-       type(metvars_out)   :: met
-       real(sp)            :: Pjj, Ratm, delta
-       integer             :: dyr, day
-       integer             :: daysinmonth(12),midday(12),m,m1,m2
-       real                :: drad(365)
-
-
-       daysinmonth = (/ 31,28,31,30,31,30,31,31,30,31,30,31 /)
-       midday      = (/ 16,44,75,105,136,166,197,228,258,289,319,350 /)
-
-       call calcorbitpars(yr,orbit)
-       call calcPjj(temp,prec,Pjj)
-       call initairmass()
-
-       rad0 = 0.0
-       sun = 0.0
-       dayl = 0.0
-       dpet = 0.0
-
-       do day=1,365
-         met%tmax   = dtemp(day)
-         met%tmin   = dtemp(day)
-         met%prec   = dprec(day)
-         met%cldf   = 1.-dclou(day)/100.
-         call radpet(orbit,lat*1.0_dp,tcm,Pjj,day,Ratm,met)
-         !TODO needs to be replaced by actual relative air pressure
-         Ratm = 1.0_sp
-         dpet(day) = met%dpet
-         drad(day) = met%srad*1.e3 ! KJ/m2 -> J/m2
-         ddayl(day) = met%dayl
-         ! Sum total annual radiation for months with t>0oC (GJs PAR year-1)
-         ! (assuming 50% of short wave radiation is PAR)
-         if (dtemp(day)>0.0) then
-           rad0 = rad0 + 0.5*drad(day)*1.e-9
-         end if
-         !if (any(midday==day)) then
-         !  sun(minloc(abs(midday-day))) = drad(day)
-         !  dayl(minloc(abs(midday-day))) = ddayl(day)
-         !end if
-       end do
-       ! average for monthly values of 'sun' and 'dayl'
-       m1 = 1
-       m2 = 0
-       sun = 0.0
-       do m=1,12
-         m2 = m2 + daysinmonth(m)
-         sun(m) = sum(drad(m1:m2))/daysinmonth(m)
-         dayl(m) = sum(ddayl(m1:m2))/daysinmonth(m)
-         m1 = m1 + daysinmonth(m)
-       end do
-       !write(*,*) 'new', lat, rad0, sum(ddayl)/365.
-       !write(*,*) 'new dayl', lat, dayl
-       !write(*,*) 'new sun', lat, sun
-       ! END MK
-      end subroutine
-
 c******************************************************************************
 c      Calculates insolation and PET for each month
- 
-       subroutine  ppeett
-     > (lat,dtemp,dclou,dpet,temp,sun,dayl,rad0,ddayl,radanom)
+
+       subroutine  ppeett_old
+     > (lat,dtemp,dclou,dpet,temp,sun,dayl,rad0,ddayl,radanom,
+     >  rad_rs,rad_rl)
 
        implicit none
 
        integer month,day,dayofm,midday(12),daysinmonth(12)
 
-       real dtemp(365),dclou(365),lat
+       real dtemp(365),dclou(365)
+       real(dp) lat
        real dpet(365),ddayl(365),temp(12)
        real sun(12),dayl(12),rad0
+       real rad_rs(12), rad_rl(12)
+       real drs(365), drl(365)
        real dip,pie,a,sat,cla,sla,ho,rl,fd,qo,rs
        real psi,l,b,radup,qoo,c,d,albedo,hos,u,v,us,vs
+       integer m, m1, m2
        real radanom(12)
 
-       parameter(b=0.2,radup=107.,qoo=1360.,d=0.5,c=0.25)
+       parameter(b=0.2,radup=107.,qoo=1366.5,d=0.5,c=0.25)
        parameter(albedo=0.17)
 
        data (midday(month),month=1,12) 
@@ -3087,7 +3034,7 @@ c      Calculation of short wave radiation
 
        rs=rs*radanom(month)
 
-       a   = -dip*23.4*cos(dip*360.*(real(day)+10.)/365.)
+       a   = -dip*23.4462714*cos(dip*360.*(real(day)+10.)/365.)
        cla =  cos(lat*dip)*cos(a)
        sla =  sin(lat*dip)*sin(a)
        u = rs*sla - rl
@@ -3113,6 +3060,9 @@ c      Multiply l by e6 to convert from mj/kg to j/kg
 
 c      Store total daily equilibrium transpiration rate as dpet
        dpet(day)=fd*2.*((rs*sla-rl)*ho+rs*cla*sin(ho))/(pie/12.)
+
+       drs(day) = rs
+       drl(day) = rl
 
 c      Calculate daylength in hours
        if (ho.eq.0.0) then
@@ -3162,6 +3112,144 @@ c        (assuming 50% of short wave radiation is PAR)
        !write(*,*) 'old', lat, rad0, sum(ddayl)/365.
        !write(*,*) 'old dayl', lat, dayl
        !write(*,*) 'old sun', lat, sun
+       m1 = 1
+       m2 = 0
+       do m=1,12
+         m2 = m2 + daysinmonth(m)
+         rad_rs(m) = sum(drs(m1:m2))/daysinmonth(m)
+         rad_rl(m) = sum(drl(m1:m2))/daysinmonth(m)
+         m1 = m1 + daysinmonth(m)
+       end do
+
+       return
+       end
+ 
+       subroutine  ppeett
+     > (orbit,lat,dtemp,dclou,dpet,temp,sun,
+     >  dayl,rad0,ddayl,radanom,rad_rs,rad_rl)
+
+
+       implicit none
+
+       integer month,day,dayofm,midday(12),daysinmonth(12)
+
+       real dtemp(365),dclou(365)
+       real(dp) lat
+       real dpet(365),drad(365),ddayl(365),temp(12)
+       real sun(12),dayl(12),rad0
+       real rad_rs(12), rad_rl(12)
+       real drs(365), drl(365)
+       real dip,pie,a,sat,cla,sla,ho,rl,fd,qo,rs
+       real psi,l,b,radup,qoo,c,d,albedo,hos,u,v,us,vs
+       integer m, m1, m2
+       real radanom(12)
+       type(orbitpars)     :: orbit
+       real                :: delta
+
+       parameter(b=0.2,radup=107.,qoo=1360.,d=0.5,c=0.25)
+       parameter(albedo=0.17)
+
+       data (midday(month),month=1,12) 
+     *   / 16,44,75,105,136,166,197,228,258,289,319,350 /
+       data (daysinmonth(month),month=1,12) 
+     *   / 31,28,31,30,31,30,31,31,30,31,30,31          /
+
+       pie = 4.*atan(1.)
+       dip = pie/180.
+
+c      Daily loop
+       day=0
+       rad0=0.
+       do 10 month  = 1,12
+       do 20 dayofm = 1,daysinmonth(month)
+       day=day+1
+
+c      Find psi and l for this temperature from lookup table
+c      psychrometer constant (pa/oc), latent heat lamba (mj/kg) 
+       call table(dtemp(day),psi,l)
+    
+c      Calculation of longwave radiation       
+       rl = (b + (1-b)*(dclou(day)/100.))*(radup- dtemp(day))
+
+c      Since changes in radiation (short or long) will mainly be due
+c      to changes in cloudiness, apply the (short wave) anomaly here too.
+c      Per B. Smith 1998
+       
+       rl=rl*radanom(month)
+
+c      c=0.29*cos(lat) to emphasize the effect of clouds at high latitude
+c      c=0.29*cos(lat*dip)
+
+c MK -- new stuff
+       call toa_insolation(orbit,day,lat,qo,ddayl(day),delta)
+c      !  convert from kJ per m2 and day to W per m2 times pi (half circle?)
+       qo = pie*qo/86.4d0
+       rs  =  qo*(c+d*(dclou(day)/100.))*(1.-albedo)
+c       drad(day) = qo
+       cla =  cos(lat*dip)*cos(delta*dip)
+       sla =  sin(lat*dip)*sin(delta*dip)
+       u = rs*sla - rl
+       v = rs*cla      
+
+c      Check for polar day and polar night
+       if(u.ge.v)then
+c      polar day:
+       ho = pie
+       elseif(u.le.(0.-v))then
+c      polar night:
+       ho = 0.
+       else
+c      normal day and night: (find ho the time of dawn)
+       ho =  acos(-u/v)
+       endif
+c      ! end new stuff
+
+c      Equations for demand function
+       sat=(2.5*10**6.*exp((17.27*dtemp(day))/(237.3+dtemp(day))))
+     *          /((237.3+dtemp(day))**2.)
+c      Multiply l by e6 to convert from mj/kg to j/kg 
+       fd = (3600./(l*1e6))*(sat/(sat+psi))
+
+c      Store total daily equilibrium transpiration rate as dpet
+       dpet(day)=fd*2.*((rs*sla-rl)*ho+rs*cla*sin(ho))/(pie/12.)
+
+       drs(day) = rs
+       drl(day) = rl
+
+c      If at a mid-month day then record mid-month daily sun and dayl
+       if(day.eq.midday(month))then
+
+
+c        First record the day length 
+         dayl(month)=ddayl(day)
+
+c        Now calculate daily total irradiance (j/m2) & record in sun
+
+c        Find total insolation for this day, units are j/m2
+         sun(month)= 
+     *   2.*(rs*sla*ho+rs*cla*sin(ho))*(3600.*12./pie)
+c        Do not allow negative values for insolation 
+         if(sun(month).le.0.) sun(month)=0.
+
+c        Sum total annual radiation for months with t>0oC (GJs PAR year-1)
+c        (assuming 50% of short wave radiation is PAR)
+         if(temp(month).gt.0.)then
+         rad0=rad0+real(daysinmonth(month))*sun(month)*1e-9*0.5
+         endif
+
+       endif
+
+ 20    continue
+ 10    continue
+
+       m1 = 1
+       m2 = 0
+       do m=1,12
+         m2 = m2 + daysinmonth(m)
+         rad_rs(m) = sum(drs(m1:m2))/daysinmonth(m)
+         rad_rl(m) = sum(drl(m1:m2))/daysinmonth(m)
+         m1 = m1 + daysinmonth(m)
+       end do
 
        return
        end
