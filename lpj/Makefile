@@ -1,7 +1,9 @@
 
 OBJ = parametersmod.o orbitmod.o radiationmod.o
-FFLAGS = -O3 -Wall
-FC = gfortran
+#FFLAGS = -Ofast -Wall
+#FC = gfortran
+FFLAGS = -O3 -xHost -ipo
+FC = ifort
 
 all: lib
 

@@ -55,7 +55,7 @@ c-------------------------------------
       call get_command_argument(1, optionsfile)
       if (len_trim(optionsfile) == 0) then
           write(*,*) 'Missing argument (options file). Exiting!'
-          return
+          stop
       end if
 
       call biome4setup(optionsfile,inputid,outputid,limits,
@@ -89,7 +89,7 @@ c     errors and you will be much happier you did.
 
       if (status.ne.nf_noerr) then
        print *,nf_strerror(status)
-       stop
+       return
       end if
 
       return
@@ -117,6 +117,7 @@ c-------------------------------------
 
 c     Returns a character string with the current time and date
 
+      use ifport
       implicit none
 
       character*30 timestr

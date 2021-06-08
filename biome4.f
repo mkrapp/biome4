@@ -3182,7 +3182,7 @@ c      c=0.29*cos(lat*dip)
 
 c MK -- new stuff
        call toa_insolation(orbit,day,lat,qo,ddayl(day),delta)
-c      !  convert from kJ per m2 and day to W per m2 times pi (half circle?)
+c      !  convert from kJ per m2 and day to W per m2 times pi (symmetric half day)
        qo = pie*qo/86.4d0
        rs  =  qo*(c+d*(dclou(day)/100.))*(1.-albedo)
 c       drad(day) = qo
@@ -3224,6 +3224,21 @@ c        First record the day length
          dayl(month)=ddayl(day)
 
 c        Now calculate daily total irradiance (j/m2) & record in sun
+
+c        Now calculate daily total irradiance (j/m2) & record in sun
+         us = rs*sla
+         vs = rs*cla
+c        check for polar day and polar night
+         if(us.ge.vs)then
+c        polar day:
+         hos = pie
+         elseif(us.le.(0.-vs))then
+c        polar night (also h1=0. for polar night)
+         hos = 0.
+         else
+c        normal day and night, find hos the time of dawn
+         hos =  acos(-us/vs)
+         endif
 
 c        Find total insolation for this day, units are j/m2
          sun(month)= 

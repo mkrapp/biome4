@@ -11,11 +11,11 @@ def main():
     # here goes the main part
 
     fnm1 = sys.argv[1]
-    ds1 = xr.open_dataset(fnm1)
+    ds1 = xr.open_dataset(fnm1,decode_times=False)
     fnm2 = sys.argv[2]
-    ds2 = xr.open_dataset(fnm2)
+    ds2 = xr.open_dataset(fnm2,decode_times=False)
     fnm3 = sys.argv[3]
-    ds3 = xr.open_dataset(fnm3)
+    ds3 = xr.open_dataset(fnm3,decode_times=False)
     proj = ccrs.PlateCarree()
     data_proj = ccrs.PlateCarree()
 
@@ -26,17 +26,24 @@ def main():
     vmax = 700
 
     ax[0,0].coastlines(linewidths=0.5)
-    ax[0,0].set_title("BIOME4",loc="left",fontsize=10)
-    ds1["npp"].plot(ax=ax[0,0],rasterized=True,cmap="Spectral_r",transform=data_proj,cbar_kwargs=cbar_kwargs)
+    ax[0,0].set_title("BIOME4 (new)",loc="left",fontsize=10)
+    ds1["npp"].plot(ax=ax[0,0],rasterized=True,cmap="Spectral_r",vmin=0,transform=data_proj,cbar_kwargs=cbar_kwargs)
+    ax[0,0].set_title("",loc="center")
+
     ax[1,0].coastlines(linewidths=0.5)
-    ax[1,0].set_title("BIOME4 - SEDAC",loc="left",fontsize=10)
+    ax[1,0].set_title("BIOME4 (new) - SEDAC",loc="left",fontsize=10)
     (ds1["npp"]-ds2["Band1"]).plot(ax=ax[1,0],rasterized=True,cmap="RdBu_r",vmin=vmin,vmax=vmax,transform=data_proj,cbar_kwargs=cbar_kwargs)
+    ax[1,0].set_title("",loc="center")
+
     ax[0,1].coastlines(linewidths=0.5)
-    ax[0,1].set_title("BIOME4 - MODIS",loc="left",fontsize=10)
-    (ds1["npp"]-ds3["Band1"]).plot(ax=ax[0,1],rasterized=True,cmap="RdBu_r",vmin=vmin,vmax=vmax,transform=data_proj,cbar_kwargs=cbar_kwargs)
+    ax[0,1].set_title("BIOME4 (new) - BIOME4 (old)",loc="left",fontsize=10)
+    (ds1["npp"]-ds3["npp"]).plot(ax=ax[0,1],rasterized=True,cmap="RdBu_r",vmin=vmin,vmax=vmax,transform=data_proj,cbar_kwargs=cbar_kwargs)
+    ax[0,1].set_title("",loc="center")
+
     ax[1,1].coastlines(linewidths=0.5)
-    ax[1,1].set_title("SEDAC - MODIS",loc="left",fontsize=10)
-    (ds2["Band1"]-ds3["Band1"]).plot(ax=ax[1,1],rasterized=True,cmap="RdBu_r",vmin=vmin,vmax=vmax,transform=data_proj,cbar_kwargs=cbar_kwargs)
+    ax[1,1].set_title("BIOME4 (old) - SEDAC",loc="left",fontsize=10)
+    (ds3["npp"]-ds2["Band1"]).plot(ax=ax[1,1],rasterized=True,cmap="RdBu_r",vmin=vmin,vmax=vmax,transform=data_proj,cbar_kwargs=cbar_kwargs)
+    ax[1,1].set_title("",loc="center")
 
 
     plt.show()

@@ -17,13 +17,14 @@ NETCDF_FLIBS  = -L$(shell nc-config --libdir) -lnetcdf -lnetcdff
 ## the GNU g77 fortran compiler, change value for compile in the
 ## following line. 
 ################################################################
-FC = gfortran
+#FC = gfortran
+FC = ifort
 
 ####################
 ## Can add a -g here
 ####################
 #OTHERFLAGS = -g
-OTHERFLAGS = -fallow-argument-mismatch
+#OTHERFLAGS = -fallow-argument-mismatch
 
 ################################################################
 ## You should not have to edit anything below this line        #
@@ -33,7 +34,8 @@ LPJOBJS = lpj/parametersmod.o lpj/orbitmod.o lpj/radiationmod.o
 LPJ_AR = lpj/liblpj.so
 MODELOBJS = biome4.o biome4setup.o biome4driver.o biome4main.o
 
-FFLAGS = $(OTHERFLAGS) -O3 -Wall $(NETCDF_FFLAGS)
+#FFLAGS = $(OTHERFLAGS) -Ofast -Wall $(NETCDF_FFLAGS)
+FFLAGS = $(OTHERFLAGS) -O3 -xHost -ipo $(NETCDF_FFLAGS)
 
 ################################################################
 
@@ -51,6 +53,12 @@ liblpj: $(LPJOBJS)
 
 model:	$(MODELOBJS)
 	$(FC) -o biome4 $(MODELOBJS) $(FFLAGS) $(NETCDF_FLIBS) -Llpj -llpj
+
+orbit:	orbit.f90
+	$(FC) -o orbit.x orbit.f90 $(FFLAGS) -Llpj -llpj
+
+insolation:	insolation.f90
+	$(FC) -o insolation.x insolation.f90 $(FFLAGS) -Llpj -llpj
 
 clean::	
 	-rm *.o lpj/*.o $(LPJ_AR) biome4 *.mod

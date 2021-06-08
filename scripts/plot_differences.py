@@ -17,7 +17,7 @@ def main():
     proj = ccrs.PlateCarree()
     data_proj = ccrs.PlateCarree()
 
-    fig, ax = plt.subplots(3,2,sharex=True,sharey=True,subplot_kw={"projection": proj},figsize=(8,5))
+    fig, ax = plt.subplots(3,2,sharex=True,sharey=True,subplot_kw={"projection": proj},figsize=(12,8))
 
     cbar_kwargs={"shrink":0.7, "label": None}
 
