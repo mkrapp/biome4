@@ -330,8 +330,8 @@ c      Final output biome is given by the integer biome:
            output(455+i)=rad_rs(i)
            output(467+i)=rad_rl(i)
        end do
-       output(48)=lon
-       output(49)=lat
+c       output(48)=lon
+c       output(49)=lat
        
 
        do pft=1,numofpfts
@@ -732,6 +732,23 @@ c     put some variables into format for output
 
       dom=optpft
 
+c----- rb792: I moved the following lines (711-722) here from directly below the if clause in l.725. Otherwise npp and lai are unintentionally overwritten if optpdf==14
+
+      npp=optnpp(dom)
+      lai=optlai(dom)
+
+c      npp=optnpp(wdom)
+c      lai=optlai(wdom)
+      grasslai=optlai(grasspft)
+
+c      npp=optnpp(grasspft)
+c      lai=optlai(grasspft)
+
+c      lai=woodylai
+c      lai=grasslai
+
+c------ rb792: end of the part that I moved up from below the following if clause
+
 c------------------------------------------------------
       if (optpft.eq.14) then
       
@@ -786,19 +803,6 @@ c------------------------------------------------------
 
       if (optlai(dom).eq.0.0) optpft=0
 
-      npp=optnpp(dom)
-      lai=optlai(dom)
-
-c      npp=optnpp(wdom)
-c      lai=optlai(wdom)
-      grasslai=optlai(grasspft)
-
-c      npp=optnpp(grasspft)
-c      lai=optlai(grasspft)
-
-c      lai=woodylai
-c      lai=grasslai
-
       call newassignbiome
      >(optpft,wdom,grasspft,subpft,npp,woodnpp,grassnpp,subnpp,
      > greendays,biome,gdd0,gdd5,tcm,present,woodylai,grasslai,tmin)
@@ -808,8 +812,8 @@ c       The values of all output variables, except the actual biome type
 c       [output(1)] are assigned here:
  
 
-        output(2)=nint(lai*100.)
-        output(3)=nint(npp)  
+        output(2)=lai
+        output(3)=npp
         output(4)=nint(optlai(wdom)*100.)
         output(5)=nint(optnpp(wdom))
         output(6)=nint(optlai(grasspft)*100.)
@@ -902,7 +906,7 @@ c------------------------------------
        end do
 
        do pos=37,48
-        output(pos)=optdata(dom,pos)  !monthly npp, one pft
+        output(pos)=optdata(dom,pos)/10.  !monthly npp, one pft
        end do
 
        do pos=101,112
@@ -926,7 +930,7 @@ c------------------------------------
        end do
 
        do pos=173,184
-        output(pos)=optdata(dom,pos)  !monthly LAI
+        output(pos)=optdata(dom,pos)/100.  !monthly LAI
        end do
 
        do pos=185,196
@@ -973,16 +977,12 @@ c      Monthly soil moisture, mean, top, and bottom layers *100
        
        output(450)=optdata(dom,450)    !meanKlit
        output(451)=optdata(dom,451)    !meanKsoil
-       output(452)=tcm		       !coldest monrh temp
-       output(453)=gdd0    	       !gdd0
+       output(452)=tcm                 !coldest monrh temp
+       output(453)=gdd0                !gdd0
        output(454)=gdd5                !gdd5
 
        output(480)=optdata(dom,3)! annual AET
        output(481)=sum(dpet)     ! annual PET
-       ! RMB modification, 482-494
-       do m=1,12
-         output(481+m)=optdata(dom,36+m)  !monthly npp, one pft
-       end do
 
 c---------------------------------------------------------------------
 

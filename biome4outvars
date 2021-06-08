@@ -13,19 +13,18 @@ C		5 = nf_float
 C		6 = nf_double
 C
 C+---------+---------+---------+-------+-----------------------------------------------+-----------------------+---------+
-C+ varnames  vardims	dimids	typenum		var_longnames				var_units		location
+C+ varnames	vardims	dimids	typenum	var_longnames			var_units		location
 C+---------+---------+---------+-------+-----------------------------------------------+-----------------------+---------+
-'biome'		2	1 2 0 0	3	'biome'						'biome'			1
-'npp'		2	1 2 0 0	5	'annual net primary production'			'gC/m^2'		3
-'mo_npp'	3	1 2 3 0	5	'monthly net primary production'		'gC/m^2'		482
-'aet'   	2	1 2 0 0	5	'annual evapotranspiration'              	'mm/year'		480
-'pet'   	2	1 2 0 0	5	'annual potential evapotranspiration'   	'mm/year'		481
-'decomp'	2	1 2 0 0	5	'decomposition scalar'				'index'			451
-'LAI'           2	1 2 0 0	5	'lai'			                        'gC/m^2'		2
-'runoff'	2	1 2 0 0	5	'total annual runoff'				'cm'			11
-'mo_runoff'	3	1 2 3 0 5	'total monthly runoff'	                        'cm'     		185
-'tcm'		2	1 2 0 0 5	'coldest month'					'degree'		452
-'gdd0'		2	1 2 0 0 5	'gdd0'						'index'			453
-'gdd5'		2	1 2 0 0 5	'gdd5'						'index'			454
-'aaet'          2       1 2 0 0 3       'annual aet'                                    'index'                 460
-'apet'          2       1 2 0 0 3       'annual pet'                                    'index'                 461
+'biome'		2	1 2 0 0	3	'biome'									'biome'		1
+'LAI'		2	1 2 0 0	5	'leaf area index'						'm^2/m^2'	2
+'npp'		2	1 2 0 0	5	'annual net primary production'			'gC/m^2'	3
+'mo_npp'	3	1 2 3 0	5	'monthly net primary production'		'gC/m^2'	37
+'mo_lai'	3	1 2 3 0	5	'monthly leaf area index'				'm^2/m^2'	173
+'aet'		2	1 2 0 0	5	'annual evapotranspiration'				'mm/a'		480
+'pet'		2	1 2 0 0	5	'annual potential evapotranspiration'	'mm/a'		481
+'decomp'	2	1 2 0 0	5	'decomposition scalar'					'index'		451
+'runoff'	2	1 2 0 0	5	'total annual runoff'					'cm'		11
+'mo_runoff'	3	1 2 3 0 5	'total monthly runoff'					'cm'		185
+'tcm'		2	1 2 0 0 5	'coldest month'							'degree'	452
+'gdd0'		2	1 2 0 0 5	'gdd0'									'index'		453
+'gdd5'		2	1 2 0 0 5	'gdd5'									'index'		454
