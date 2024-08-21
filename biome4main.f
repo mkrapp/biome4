@@ -117,7 +117,9 @@ c-------------------------------------
 
 c     Returns a character string with the current time and date
 
+#ifdef IFORT
       use ifport
+#endif
       implicit none
 
       character*30 timestr

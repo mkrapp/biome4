@@ -9,22 +9,27 @@
 ## file 'netcdf.h', the name of the netcdf library file, and the
 ## path to that library file.
 ################################################################
-NETCDF_FFLAGS = -I$(shell nc-config --includedir)
-NETCDF_FLIBS  = -L$(shell nc-config --libdir) -lnetcdf -lnetcdff
+NETCDF_INCLUDEDIR = /usr/local/Cellar/netcdf-fortran/4.6.1/include
+NETCDF_LIBDIR = /usr/local/Cellar/netcdf-fortran/4.6.1/lib
+NETCDF_FFLAGS = -I$(NETCDF_INCLUDEDIR)
+NETCDF_FLIBS  = -L$(NETCDF_LIBDIR) -lnetcdff
 
 ################################################################
 ## If you want to use another compiler instead of the
 ## the GNU g77 fortran compiler, change value for compile in the
 ## following line. 
 ################################################################
-#FC = gfortran
-FC = ifort
+FC = gfortran
+#FC = ifort
 
 ####################
 ## Can add a -g here
 ####################
 #OTHERFLAGS = -g
-#OTHERFLAGS = -fallow-argument-mismatch
+# for gfortran
+OTHERFLAGS = -fallow-argument-mismatch -cpp
+# for ifort
+#OTHERFLAGS = -O3 -xHost -ipo -fpp -D IFORT
 
 ################################################################
 ## You should not have to edit anything below this line        #
@@ -35,7 +40,7 @@ LPJ_AR = lpj/liblpj.so
 MODELOBJS = biome4.o biome4setup.o biome4driver.o biome4main.o
 
 #FFLAGS = $(OTHERFLAGS) -Ofast -Wall $(NETCDF_FFLAGS)
-FFLAGS = $(OTHERFLAGS) -O3 -xHost -ipo $(NETCDF_FFLAGS)
+FFLAGS = $(OTHERFLAGS) $(OTHERFLAGS) $(NETCDF_FFLAGS)
 
 ################################################################
 
